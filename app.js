@@ -166,7 +166,7 @@ const popups = [
 
 function loadApi() {
   try {
-    return JSON.parse(localStorage.getItem(API_KEY)) || { endpoint: "https://api.openai.com/v1/chat/completions", model: "gpt-4.1-mini", key: "" };
+    return JSON.parse(localStorage.getItem(API_KEY)) || { endpoint: "https://api.deepseek.com/chat/completions", model: "deepseek-chat", key: "" };
   } catch {
     return { endpoint: "", model: "", key: "" };
   }
@@ -326,7 +326,50 @@ function setView(view) {
 
 function portrait(person, child) {
   const pal = person?.palette || child?.palette || ["#147c83", "#f2c078", "#7654a6"];
-  return `<div class="portrait"><svg viewBox="0 0 120 160"><rect width="120" height="160" fill="${pal[0]}"/><circle cx="22" cy="24" r="5" fill="#fff" opacity=".55"/><path d="M14 160c8-39 28-58 46-58s39 19 47 58z" fill="${pal[2]}" opacity=".82"/><circle cx="61" cy="67" r="33" fill="#f1c7a5"/><path d="M25 67c2-36 24-50 50-43 20 5 31 22 28 48-18-13-33-12-49-32-6 13-15 21-29 27z" fill="#3f332f"/><path d="M43 76q6 5 12 0M68 76q6 5 12 0" stroke="#432" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M54 96q8 7 18 0" stroke="#9b4b4b" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M31 122c20 18 39 18 58 0v38H31z" fill="${pal[1]}"/></svg></div>`;
+  const seed = (person?.id || child?.id || "kid").split("").reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+  const longHair = seed % 3 !== 0;
+  const side = seed % 2 === 0 ? -1 : 1;
+  const accessory = seed % 4;
+  const skin = ["#f1c7a5", "#e7b98f", "#f5d0b7", "#d8a078"][seed % 4];
+  const hair = ["#2f2725", "#45322d", "#1f2633", "#5b3b35", "#2b202c"][seed % 5];
+  const lip = ["#9b4b4b", "#b95d6a", "#8c3d55", "#c06c58"][seed % 4];
+  const eye = ["#34251f", "#1e2f38", "#3b2b44"][seed % 3];
+  const badge = accessory === 0 ? `<circle cx="89" cy="43" r="5" fill="${pal[1]}"/><circle cx="89" cy="43" r="2" fill="#fff" opacity=".8"/>` : "";
+  const earring = accessory === 1 ? `<path d="M88 82q8 10 0 20q-8-10 0-20z" fill="${pal[1]}" opacity=".9"/>` : "";
+  const glasses = accessory === 2 ? `<path d="M38 74h20m10 0h20M35 74a11 8 0 1 0 22 0a11 8 0 1 0-22 0M69 74a11 8 0 1 0 22 0a11 8 0 1 0-22 0" stroke="#2b2b2b" stroke-width="2" fill="none" opacity=".8"/>` : "";
+  const hairShape = longHair
+    ? `<path d="M28 70c-8-31 7-54 33-56c30-2 48 21 43 59c-2 17-7 34-4 52c-12 9-28 10-40 4c-11 6-26 5-38-3c5-17 10-36 6-56z" fill="${hair}"/><path d="M30 66c7-23 23-31 44-43c2 18 18 22 29 40c-3-32-22-50-48-45c-20 3-32 20-25 48z" fill="#fff" opacity=".08"/>`
+    : `<path d="M26 67c1-30 21-49 48-43c21 4 32 20 30 47c-16-12-31-15-49-31c-6 13-14 21-29 27z" fill="${hair}"/>`;
+  return `<div class="portrait"><svg viewBox="0 0 120 160" role="img" aria-label="角色立绘">
+    <defs>
+      <linearGradient id="bg-${seed}" x1="0" x2="1" y1="0" y2="1"><stop stop-color="${pal[0]}"/><stop offset=".58" stop-color="${pal[2]}"/><stop offset="1" stop-color="${pal[1]}"/></linearGradient>
+      <linearGradient id="cloth-${seed}" x1="0" x2="1"><stop stop-color="${pal[2]}"/><stop offset="1" stop-color="${pal[0]}"/></linearGradient>
+      <filter id="soft-${seed}" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#000" flood-opacity=".25"/></filter>
+    </defs>
+    <rect width="120" height="160" fill="url(#bg-${seed})"/>
+    <path d="M0 128C24 111 36 121 56 103C78 83 96 82 120 69V160H0Z" fill="#fff" opacity=".13"/>
+    <path d="M12 28h95M24 18h54M76 142h31" stroke="#fff" stroke-width="1" opacity=".24"/>
+    <circle cx="20" cy="30" r="12" fill="#fff" opacity=".12"/><circle cx="102" cy="52" r="8" fill="#fff" opacity=".16"/><circle cx="96" cy="20" r="3" fill="#fff" opacity=".55"/>
+    <g filter="url(#soft-${seed})">
+      ${hairShape}
+      <path d="M17 160c7-35 27-58 44-58s39 23 45 58z" fill="url(#cloth-${seed})"/>
+      <path d="M41 116c9 10 31 10 40 0l-8 44H49z" fill="${skin}"/>
+      <circle cx="61" cy="68" r="31" fill="${skin}"/>
+      <path d="M29 66c12-5 21-15 27-28c15 17 29 20 47 31c-1-28-18-47-43-47c-22 0-37 17-31 44z" fill="${hair}" opacity=".96"/>
+      <path d="M47 63c-5-2-10-2-15 1M72 63c6-2 12-2 17 1" stroke="${hair}" stroke-width="3" stroke-linecap="round"/>
+      <path d="M42 76q6 5 12 0M70 76q6 5 12 0" stroke="${eye}" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      ${glasses}
+      <path d="M60 80q-3 7 2 11" stroke="#b77c68" stroke-width="2" fill="none" stroke-linecap="round" opacity=".75"/>
+      <path d="M53 98q9 7 19 0" stroke="${lip}" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path d="M37 122c14 13 35 16 50 0l9 38H27z" fill="${pal[1]}" opacity=".95"/>
+      <path d="M61 128l-9 32h18z" fill="#fff" opacity=".55"/>
+      <path d="M31 132c16 8 43 11 61-1" stroke="#fff" stroke-width="2" opacity=".32"/>
+      ${badge}${earring}
+      <path d="M20 160c6-17 17-28 29-34c-4 12-5 23-3 34z" fill="#000" opacity=".14"/>
+      <path d="M101 160c-6-16-17-27-29-34c4 12 5 23 3 34z" fill="#000" opacity=".16"/>
+    </g>
+    <path d="M${side > 0 ? 83 : 31} 29c7-8 15-9 22-2" stroke="${pal[1]}" stroke-width="2" fill="none" opacity=".8"/>
+  </svg></div>`;
 }
 
 function focusNpc(id) {
@@ -531,7 +574,7 @@ function renderChild(child) {
 }
 
 function renderApi() {
-  return `<section class="panel"><h2>AI 对话 API 设置</h2><p class="muted">使用 OpenAI 兼容的 Chat Completions 接口。前三个选项始终本地生成；第四个选项调用 API，并会带入 NPC 性格、人生轨迹和关系数值。</p><div class="form-grid"><div class="field"><label>接口地址</label><input id="apiEndpoint" value="${state.api.endpoint || ""}"></div><div class="field"><label>模型名</label><input id="apiModel" value="${state.api.model || ""}"></div><div class="field"><label>API Key</label><input id="apiKey" type="password" value="${state.api.key || ""}"></div></div><div class="footer-actions"><button class="primary-btn" onclick="saveApi()">保存 API</button></div></section>`;
+  return `<section class="panel"><h2>DeepSeek API 对话设置</h2><p class="muted">使用 DeepSeek 兼容的 Chat Completions 接口。前三个选项始终本地生成；第四个选项调用 DeepSeek API，并会带入 NPC 性格、人生轨迹和关系数值。</p><div class="form-grid"><div class="field"><label>接口地址</label><input id="apiEndpoint" value="${state.api.endpoint || "https://api.deepseek.com/chat/completions"}"></div><div class="field"><label>模型名</label><input id="apiModel" value="${state.api.model || "deepseek-chat"}"></div><div class="field"><label>DeepSeek API Key</label><input id="apiKey" type="password" value="${state.api.key || ""}"></div></div><div class="footer-actions"><button class="primary-btn" onclick="saveApi()">保存 API</button></div></section>`;
 }
 
 function renderLogs() {
